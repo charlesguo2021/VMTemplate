@@ -1,0 +1,22 @@
+
+vms:
+  - type: win
+    name: "win-test"
+
+    cpu: 4
+    memory: 4096MB
+
+    network:
+      ip:
+      netmask:
+      gateway:
+      dns:
+
+    email: "Charles Guo <chao.guo@aspentech.com>"
+
+    network_switch: 'New Virtual Switch'
+
+    src_vhd: "E:\\Win10Template\\Win10Template.vhdx"
+    dest_vhd: "E:\\AnsibleTest\\AnsibleTest.vhdx"
+
+    tools: '["7-Zip", "Google Chrome"]'
