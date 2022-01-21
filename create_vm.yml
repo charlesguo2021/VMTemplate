@@ -1,0 +1,60 @@
+---
+- name: Load Env file
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Execute Script
+      command: python3 env.py
+      register: config
+
+    - name: Assign the result to a relevant var
+      set_fact:
+        var: "{{ config.stdout }}"
+
+- name: Provision VM
+  hosts: win
+  gather_facts: no
+
+  tasks:
+    - name: Include vm env var
+      include_vars:
+        file: "{{ hostvars['localhost']['var'] }}"
+
+    - import_tasks: tasks/prov_vm.yml
+
+    - name: install GoogleChrome
+      win_chocolatey:
+        name: "googlechrome"
+        state: present
+      when: '"Google Chrome" in item.tools'
+      with_items: "{{ vms }}"
+
+    - name: install 7-zip
+      win_chocolatey:
+        name: "7zip"
+        state: present
+      when: '"7-Zip" in item.tools'
+      with_items: "{{ vms }}"
+
+    - name: Send Email Notification
+      mail:
+        host: smtp.gmail.com
+        port: 587
+        username: aspencharlestest@gmail.com
+        password: Aspen100
+        to: " {{ item.email }}"
+        subject: Ansible-report
+        body: 'System {{ item.name }} has been successfully provisioned'
+      with_items: "{{ vms }}"
+      delegate_to: localhost
+
+- name: Clean Up
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Remove Completed Config file
+      file:
+        path: "./vars/{{ config.stdout }}"
+        state: absent
